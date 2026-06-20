@@ -8,7 +8,7 @@
   // ----------------------------------------------------------
   // Gemini API Configuration (hardcoded)
   // ----------------------------------------------------------
-  const GEMINI_API_KEY = 'AIzaSyBIkpCclyhLZMSdrVWGRpuwp76g-N8aiQg';
+  const GEMINI_API_KEY = 'AQ.Ab8RN6L4VNATYaCcVA1kmD9cseOLvo7Dk-uQEuVP24wGofT9xQ';
   const GEMINI_MODEL = 'gemini-3.1-flash-lite';
 
   // ----------------------------------------------------------
