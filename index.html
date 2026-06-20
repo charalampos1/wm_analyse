@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="de" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WM 2026 Match Simulator</title>
+  <meta name="description" content="KI-gestützte Spielberichte und Prognosen der FIFA Fußball-Weltmeisterschaft 2026." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwindcss.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg:      { DEFAULT: '#0c1222', card: '#151d2e', hover: '#1a2438', input: '#111a2b' },
+            border:  { DEFAULT: '#1e293b', light: '#2a3a52' },
+            txt:     { DEFAULT: '#dce6f2', dim: '#8899aa', muted: '#5a6a7a' },
+            accent:  { DEFAULT: '#ff4757', dark: '#cc2d3b' },
+            gold:    { DEFAULT: '#ffc312' },
+            sky:     { DEFAULT: '#34ace0' },
+            green:   { DEFAULT: '#33d9b2' },
+          },
+          fontFamily: {
+            display: ['Outfit', 'system-ui', 'sans-serif'],
+            body:    ['Inter', 'system-ui', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #0c1222;
+      color: #dce6f2;
+    }
+
+    /* ---- Subtle top gradient ---- */
+    .page-bg {
+      background:
+        radial-gradient(ellipse 70% 40% at 50% 0%, rgba(255,71,87,0.07) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 35% at 80% 10%, rgba(52,172,224,0.05) 0%, transparent 60%),
+        #0c1222;
+    }
+
+    /* ---- Card ---- */
+    .card {
+      background: #151d2e;
+      border: 1px solid #1e293b;
+      border-radius: 1rem;
+    }
+    .card:hover { border-color: #2a3a52; }
+
+    /* ---- Select ---- */
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%238899aa' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+      background-position: right 0.75rem center;
+      background-repeat: no-repeat;
+      background-size: 1.25em 1.25em;
+      -webkit-appearance: none;
+      appearance: none;
+      padding-right: 2.5rem;
+    }
+    select option { background: #0a0f1a; color: #dce6f2; }
+    select optgroup { background: #080c16; color: #8899aa; font-weight: 600; font-size: 0.8rem; }
+
+    /* ---- Scrollbar ---- */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #2a3a52; border-radius: 3px; }
+
+    /* ---- Markdown output ---- */
+    #report-content h1 { font-size: 1.6rem; font-weight: 800; margin-bottom: 1rem; color: #fff; font-family: 'Outfit', sans-serif; }
+    #report-content h2 { font-size: 1.25rem; font-weight: 700; margin-top: 1.75rem; margin-bottom: 0.75rem; color: #f0f4f8; font-family: 'Outfit', sans-serif; padding-bottom: 0.4rem; border-bottom: 1px solid #1e293b; }
+    #report-content h3 { font-size: 1.05rem; font-weight: 600; margin-top: 1.25rem; margin-bottom: 0.5rem; color: #dce6f2; }
+    #report-content p  { margin-bottom: 0.75rem; line-height: 1.8; color: #b0c0d0; }
+    #report-content ul, #report-content ol { margin-left: 1.25rem; margin-bottom: 0.75rem; color: #b0c0d0; }
+    #report-content li { margin-bottom: 0.3rem; line-height: 1.65; }
+    #report-content strong { color: #fff; font-weight: 600; }
+    #report-content em { color: #ffc312; font-style: italic; }
+    #report-content blockquote {
+      border-left: 3px solid #ff4757; padding: 0.75rem 1rem; margin: 1rem 0;
+      background: rgba(255,71,87,0.06); border-radius: 0 0.5rem 0.5rem 0; color: #dce6f2;
+    }
+    #report-content hr { border-color: #1e293b; margin: 1.5rem 0; }
+    #report-content table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+    #report-content th { background: #1a2438; padding: 0.6rem 0.75rem; text-align: left; font-weight: 600; color: #f0f4f8; border-bottom: 2px solid #2a3a52; font-size: 0.85rem; }
+    #report-content td { padding: 0.5rem 0.75rem; border-bottom: 1px solid #1e293b; color: #b0c0d0; font-size: 0.85rem; }
+    #report-content tr:hover td { background: rgba(255,255,255,0.02); }
+    #report-content code { background: #1a2438; padding: 0.15rem 0.4rem; border-radius: 0.25rem; font-size: 0.85em; color: #34ace0; }
+
+    /* ---- Animations ---- */
+    .spinner-ring { border: 3px solid #1e293b; border-top-color: #ff4757; border-right-color: #ffc312; }
+    .toast-enter { animation: toastIn 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+    @keyframes toastIn { 0%{opacity:0;transform:translateY(-16px) scale(0.95)} 100%{opacity:1;transform:translateY(0) scale(1)} }
+    .card-slide { animation: cardSlide 0.4s ease-out; }
+    @keyframes cardSlide { 0%{opacity:0;transform:translateY(12px)} 100%{opacity:1;transform:translateY(0)} }
+    .report-enter { animation: reportEnter 0.6s ease-out; }
+    @keyframes reportEnter { 0%{opacity:0;transform:translateY(16px)} 100%{opacity:1;transform:translateY(0)} }
+    .shimmer-bar {
+      background: linear-gradient(110deg, #1e293b 30%, #2a3a52 50%, #1e293b 70%);
+      background-size: 200% 100%;
+      animation: shimmer 1.8s linear infinite;
+    }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+  </style>
+</head>
+
+<body class="min-h-screen page-bg">
+
+  <!-- Toasts -->
+  <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-3 pointer-events-none"></div>
+
+  <!-- ============ HEADER ============ -->
+  <header class="sticky top-0 z-40 bg-bg/90 backdrop-blur-md border-b border-border">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-accent flex items-center justify-center text-white text-lg font-bold shadow-md shadow-accent/20">⚽</div>
+        <div>
+          <h1 class="font-display text-lg font-extrabold tracking-tight text-white">
+            WM 2026 <span class="text-accent">SIM</span>
+          </h1>
+          <p class="text-[10px] uppercase tracking-[0.15em] text-txt-muted font-medium hidden sm:block">AI Match Analyzer</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 text-xs text-txt-dim">
+        <span class="w-1.5 h-1.5 rounded-full bg-green animate-pulse"></span>
+        <span class="hidden sm:inline">Gruppenphase läuft</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ MAIN ============ -->
+  <main class="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+
+    <!-- Hero -->
+    <section class="text-center mb-10 sm:mb-12">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-accent text-[11px] font-semibold tracking-wide uppercase mb-5">
+        <span class="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></span>
+        FIFA World Cup 2026 · USA · Mexiko · Kanada
+      </div>
+      <h2 class="font-display text-3xl sm:text-5xl font-black tracking-tight text-white mb-3 leading-tight">
+        KI-Analyse für<br/>
+        <span class="text-accent">jedes WM-Spiel</span>
+      </h2>
+      <p class="text-txt-dim text-sm sm:text-base max-w-lg mx-auto leading-relaxed">
+        Wähle eine Partie — die KI analysiert Kader, Taktik, Wetter und Gruppenstand für eine fundierte Prognose oder einen packenden Spielbericht.
+      </p>
+    </section>
+
+    <!-- ============ CONFIG CARD ============ -->
+    <section class="card p-5 sm:p-7 mb-8">
+
+      <!-- Match Selector -->
+      <div class="mb-5">
+        <label for="match-select" class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-txt-dim mb-2.5">
+          <svg class="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          Spiel auswählen
+        </label>
+        <select id="match-select" class="w-full bg-[#0a0f1a] border border-border rounded-lg px-4 py-3 text-[15px] text-white focus:outline-none focus:border-accent/60 focus:ring-1 focus:ring-accent/20 transition-colors cursor-pointer hover:border-border-light">
+        </select>
+      </div>
+
+      <!-- Match Info (auto populated) -->
+      <div id="match-info-card" class="hidden card-slide bg-bg rounded-xl border border-border p-5 sm:p-6 mb-5">
+
+        <!-- Teams -->
+        <div id="match-teams" class="flex flex-wrap items-center justify-center gap-2 text-center mb-4"></div>
+
+        <!-- Badges -->
+        <div class="flex flex-wrap items-center justify-center gap-2 mb-4">
+          <span id="match-status-badge" class="px-2.5 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wide">Anstehend</span>
+          <span id="match-group-badge" class="px-2.5 py-0.5 rounded-md bg-gold/10 text-gold text-[11px] font-bold uppercase tracking-wide border border-gold/20">Gruppe A</span>
+          <span id="match-md-badge" class="px-2.5 py-0.5 rounded-md bg-sky/10 text-sky text-[11px] font-bold uppercase tracking-wide border border-sky/20">Spieltag 1</span>
+        </div>
+
+        <!-- Score -->
+        <div id="match-score-display" class="hidden text-center mb-4"></div>
+
+        <!-- Date + Venue -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-sm mb-3">
+          <div class="flex items-center gap-3 bg-bg-card rounded-lg px-4 py-2.5 border border-border">
+            <svg class="w-4 h-4 text-txt-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <span id="match-date" class="text-txt"></span>
+          </div>
+          <div class="flex items-center gap-3 bg-bg-card rounded-lg px-4 py-2.5 border border-border">
+            <svg class="w-4 h-4 text-txt-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <span id="match-venue" class="text-txt"></span>
+          </div>
+        </div>
+
+        <!-- Weather -->
+        <div id="match-weather-loading" class="hidden flex items-center gap-3 bg-bg-card rounded-lg px-4 py-2.5 border border-border">
+          <div class="w-4 h-4 rounded-full spinner-ring animate-spin shrink-0"></div>
+          <span class="text-sm text-txt-dim">Wetterdaten werden geladen…</span>
+        </div>
+        <div id="match-weather" class="hidden flex items-center gap-3 bg-sky/[0.06] rounded-lg px-4 py-2.5 border border-sky/15"></div>
+      </div>
+
+      <!-- Custom Prompt -->
+      <div class="mb-5">
+        <label for="custom-prompt" class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-txt-dim mb-2.5">
+          <svg class="w-3.5 h-3.5 text-sky" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          Zusätzliche Anweisungen <span class="text-txt-muted normal-case tracking-normal font-normal">(optional)</span>
+        </label>
+        <textarea id="custom-prompt" rows="2" placeholder="z.B. 'Aus Sicht eines TV-Kommentators' oder 'Fokus auf taktische Analyse'…"
+          class="w-full bg-[#0a0f1a] border border-border rounded-lg px-4 py-2.5 text-sm text-txt placeholder:text-txt-muted focus:outline-none focus:border-sky/50 focus:ring-1 focus:ring-sky/20 transition-colors resize-none"></textarea>
+      </div>
+
+      <!-- Start -->
+      <button id="start-btn"
+        class="w-full sm:w-auto flex items-center justify-center gap-2.5 px-7 py-3.5 bg-accent hover:bg-accent-dark text-white font-display font-bold text-base rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-accent/20 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none focus:outline-none focus:ring-2 focus:ring-accent/40 focus:ring-offset-2 focus:ring-offset-bg">
+        <svg id="btn-icon-play" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <div id="btn-spinner" class="w-5 h-5 rounded-full spinner-ring animate-spin hidden"></div>
+        <span id="btn-text">Spielprognose generieren</span>
+      </button>
+    </section>
+
+    <!-- ============ OUTPUT ============ -->
+    <section id="output-section" class="hidden report-enter">
+      <div id="report-header" class="card p-5 sm:p-6 mb-3 border-t-2 border-accent/40">
+        <h3 id="report-title" class="font-display text-xl sm:text-2xl font-bold text-white"></h3>
+        <p id="report-meta" class="text-xs text-txt-dim mt-1"></p>
+      </div>
+      <div class="card p-5 sm:p-8">
+        <div id="report-content" class="max-w-none"></div>
+      </div>
+    </section>
+
+    <!-- Loading -->
+    <section id="loading-section" class="hidden">
+      <div class="card p-8 sm:p-12 text-center">
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-accent/10 mb-4">
+          <div class="w-8 h-8 rounded-full spinner-ring animate-spin"></div>
+        </div>
+        <h3 class="font-display text-lg font-bold text-white mb-1.5">KI analysiert das Spiel…</h3>
+        <p class="text-sm text-txt-dim mb-1">Kader, Taktik, Wettquoten und Gruppenstand werden ausgewertet.</p>
+        <p class="text-xs text-txt-muted">Dauert ca. 10–20 Sekunden.</p>
+        <div class="mt-5 h-1 w-44 mx-auto rounded-full overflow-hidden">
+          <div class="h-full w-full shimmer-bar rounded-full"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Error -->
+    <section id="error-section" class="hidden">
+      <div class="card p-5 sm:p-7 border-accent/30">
+        <div class="flex items-start gap-3">
+          <div class="shrink-0 w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center">
+            <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+          </div>
+          <div>
+            <h3 class="font-display text-base font-bold text-accent mb-0.5">Fehler</h3>
+            <p id="error-message" class="text-sm text-txt"></p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-border mt-10">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-txt-muted">
+      <span>WM 2026 Simulator · Gemini AI · Open-Meteo Wetter</span>
+      <span>Alle Berichte sind KI-generiert.</span>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
