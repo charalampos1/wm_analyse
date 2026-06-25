@@ -188,6 +188,118 @@
     { id: 72, g: 'L', md: 3, date: '2026-06-27', time: '21:00', h: 'Kroatien',      a: 'Ghana',              v: 'PHI' },
   ];
 
+// ----------------------------------------------------------
+  // WM_STATE: Zentrales State-Management & Kader-Datenbank
+  // ----------------------------------------------------------
+  const WM_STATE = {
+    // Detaillierte Infos zu allen 48 WM-Teilnehmern
+    teams: {
+      // GRUPPE A
+      'Mexiko': { coach: 'Jaime Lozano', system: '4-3-3', info: 'Kompaktes Zentrum, schnelles Flügelspiel.', squad: [{name: 'Edson Álvarez', pos: 'MF'}, {name: 'Santiago Giménez', pos: 'ANG'}, {name: 'Hirving Lozano', pos: 'ANG'}] },
+      'Südafrika': { coach: 'Hugo Broos', system: '4-2-3-1', info: 'Physisch stark, Fokus auf Konter.', squad: [{name: 'Ronwen Williams', pos: 'TW'}, {name: 'Percy Tau', pos: 'ANG'}, {name: 'Teboho Mokoena', pos: 'MF'}] },
+      'Südkorea': { coach: 'Hong Myung-bo', system: '4-4-2', info: 'Diszipliniertes Pressing, starke Individualisten.', squad: [{name: 'Son Heung-min', pos: 'ANG'}, {name: 'Kim Min-jae', pos: 'ABW'}, {name: 'Lee Kang-in', pos: 'MF'}] },
+      'Tschechien': { coach: 'Ivan Hašek', system: '3-5-2', info: 'Kompakte Abwehr, gefährlich bei Standards.', squad: [{name: 'Tomáš Souček', pos: 'MF'}, {name: 'Patrik Schick', pos: 'ANG'}, {name: 'Vladimír Coufal', pos: 'ABW'}] },
+      
+      // GRUPPE B
+      'Kanada': { coach: 'Jesse Marsch', system: '4-2-2-2', info: 'Hohes Angriffspressing, enormes Tempo.', squad: [{name: 'Alphonso Davies', pos: 'ABW'}, {name: 'Jonathan David', pos: 'ANG'}, {name: 'Stephen Eustáquio', pos: 'MF'}] },
+      'Bosnien-Herzegowina': { coach: 'Savo Milošević', system: '4-3-3', info: 'Robustes Zweikampfverhalten im Zentrum.', squad: [{name: 'Edin Džeko', pos: 'ANG'}, {name: 'Ermedin Demirović', pos: 'ANG'}, {name: 'Amar Dedić', pos: 'ABW'}] },
+      'Katar': { coach: 'Tintín Márquez', system: '3-5-2', info: 'Ballbesitzorientiert, spielstarke Halbverteidiger.', squad: [{name: 'Akram Afif', pos: 'ANG'}, {name: 'Almoez Ali', pos: 'ANG'}, {name: 'Hassan Al-Haydos', pos: 'MF'}] },
+      'Schweiz': { coach: 'Murat Yakin', system: '3-4-2-1', info: 'Taktisch extrem flexibel, dominantes Mittelfeld.', squad: [{name: 'Granit Xhaka', pos: 'MF'}, {name: 'Manuel Akanji', pos: 'ABW'}, {name: 'Breel Embolo', pos: 'ANG'}] },
+
+      // GRUPPE C
+      'Brasilien': { coach: 'Dorival Júnior', system: '4-2-3-1', info: 'Offensive Magie, sehr hohes Tempo auf den Flügeln.', squad: [{name: 'Vinícius Júnior', pos: 'ANG'}, {name: 'Rodrygo', pos: 'ANG'}, {name: 'Bruno Guimarães', pos: 'MF'}, {name: 'Alisson', pos: 'TW'}] },
+      'Marokko': { coach: 'Walid Regragui', system: '4-1-4-1', info: 'Perfekte defensive Organisation, schnelles Umschalten.', squad: [{name: 'Achraf Hakimi', pos: 'ABW'}, {name: 'Yassine Bounou', pos: 'TW'}, {name: 'Brahim Díaz', pos: 'MF'}] },
+      'Haiti': { coach: 'Gabriel Calderón', system: '4-4-2', info: 'Körperbetontes Spiel, tiefstehende Abwehrkette.', squad: [{name: 'Frantzdy Pierrot', pos: 'ANG'}, {name: 'Duckens Nazon', pos: 'ANG'}] },
+      'Schottland': { coach: 'Steve Clarke', system: '5-4-1', info: 'Kampfbetont, Flankenfokus über die Außenverteidiger.', squad: [{name: 'Andrew Robertson', pos: 'ABW'}, {name: 'Scott McTominay', pos: 'MF'}, {name: 'John McGinn', pos: 'MF'}] },
+
+      // GRUPPE D
+      'USA': { coach: 'Gregg Berhalter', system: '4-3-3', info: 'Athletisch, ballbesitzorientiert mit offensiven Außen.', squad: [{name: 'Christian Pulisic', pos: 'ANG'}, {name: 'Weston McKennie', pos: 'MF'}, {name: 'Tyler Adams', pos: 'MF'}] },
+      'Paraguay': { coach: 'Daniel Garnero', system: '4-3-3', info: 'Aggressives Pressing, direkter Zug zum Tor.', squad: [{name: 'Miguel Almirón', pos: 'MF'}, {name: 'Julio Enciso', pos: 'ANG'}, {name: 'Gustavo Gómez', pos: 'ABW'}] },
+      'Australien': { coach: 'Graham Arnold', system: '4-4-2', info: 'Physisch überlegen, stark bei ruhenden Bällen.', squad: [{name: 'Mathew Ryan', pos: 'TW'}, {name: 'Harry Souttar', pos: 'ABW'}, {name: 'Craig Goodwin', pos: 'MF'}] },
+      'Türkei': { coach: 'Vincenzo Montella', system: '4-2-3-1', info: 'Technisch starkes Mittelfeld, kreative Spielgestaltung.', squad: [{name: 'Hakan Çalhanoğlu', pos: 'MF'}, {name: 'Arda Güler', pos: 'MF'}, {name: 'Kenan Yıldız', pos: 'ANG'}] },
+
+      // GRUPPE E
+      'Deutschland': { coach: 'Julian Nagelsmann', system: '4-2-3-1', info: 'Dominantes Positionsspiel, flüssige Rotationen vorne.', squad: [{name: 'Jamal Musiala', pos: 'MF'}, {name: 'Florian Wirtz', pos: 'MF'}, {name: 'Antonio Rüdiger', pos: 'ABW'}, {name: 'Kai Havertz', pos: 'ANG'}] },
+      'Curaçao': { coach: 'Dick Advocaat', system: '4-3-3', info: 'Konterfokus, viele Spieler mit Eredivisie-Erfahrung.', squad: [{name: 'Juninho Bacuna', pos: 'MF'}, {name: 'Leandro Bacuna', pos: 'MF'}, {name: 'Jurgen Locadia', pos: 'ANG'}] },
+      'Elfenbeinküste': { coach: 'Emerse Faé', system: '4-3-3', info: 'Physisch extrem stark, enorme Wucht im Angriff.', squad: [{name: 'Sébastien Haller', pos: 'ANG'}, {name: 'Franck Kessié', pos: 'MF'}, {name: 'Seko Fofana', pos: 'MF'}] },
+      'Ecuador': { coach: 'Félix Sánchez Bas', system: '3-4-3', info: 'Sehr dynamisch, hohe Intensität im Gegenpressing.', squad: [{name: 'Moisés Caicedo', pos: 'MF'}, {name: 'Piero Hincapié', pos: 'ABW'}, {name: 'Enner Valencia', pos: 'ANG'}] },
+
+      // GRUPPE F
+      'Niederlande': { coach: 'Ronald Koeman', system: '3-4-1-2', info: 'Variables Aufbauspiel, extrem kopfballstarke Abwehr.', squad: [{name: 'Virgil van Dijk', pos: 'ABW'}, {name: 'Xavi Simons', pos: 'MF'}, {name: 'Frenkie de Jong', pos: 'MF'}] },
+      'Japan': { coach: 'Hajime Moriyasu', system: '4-2-3-1', info: 'Hohe Laufbereitschaft, technisch brillante Flügel.', squad: [{name: 'Takefusa Kubo', pos: 'MF'}, {name: 'Kaoru Mitoma', pos: 'ANG'}, {name: 'Wataru Endo', pos: 'MF'}] },
+      'Schweden': { coach: 'Jon Dahl Tomasson', system: '4-4-2', info: 'Kompakte Linien, Zielspieler im Sturmzentrum.', squad: [{name: 'Alexander Isak', pos: 'ANG'}, {name: 'Dejan Kulusevski', pos: 'ANG'}, {name: 'Viktor Gyökeres', pos: 'ANG'}] },
+      'Tunesien': { coach: 'Jalel Kadri', system: '3-4-2-1', info: 'Defensiv stabil, schnelle Umschaltmomente.', squad: [{name: 'Ellyes Skhiri', pos: 'MF'}, {name: 'Aïssa Laïdouni', pos: 'MF'}, {name: 'Montassar Talbi', pos: 'ABW'}] },
+
+      // GRUPPE G
+      'Belgien': { coach: 'Domenico Tedesco', system: '4-2-3-1', info: 'Kombinationsstark, Fokus auf das zentrale offensive Mittelfeld.', squad: [{name: 'Kevin De Bruyne', pos: 'MF'}, {name: 'Jérémy Doku', pos: 'ANG'}, {name: 'Amadou Onana', pos: 'MF'}] },
+      'Ägypten': { coach: 'Hossam Hassan', system: '4-3-3', info: 'Schnelles Umschaltspiel mit klarem Fokus auf die Rechtsaußen-Position.', squad: [{name: 'Mohamed Salah', pos: 'ANG'}, {name: 'Omar Marmoush', pos: 'ANG'}, {name: 'Mostafa Mohamed', pos: 'ANG'}] },
+      'Iran': { coach: 'Amir Ghalenoei', system: '4-4-2', info: 'Leidenschaftliche Defensive, gefährliches Sturmduo.', squad: [{name: 'Mehdi Taremi', pos: 'ANG'}, {name: 'Sardar Azmoun', pos: 'ANG'}, {name: 'Alireza Jahanbakhsh', pos: 'MF'}] },
+      'Neuseeland': { coach: 'Darren Bazeley', system: '4-3-3', info: 'Britisch geprägter Stil, Flanken auf physische Stürmer.', squad: [{name: 'Chris Wood', pos: 'ANG'}, {name: 'Liberato Cacace', pos: 'ABW'}, {name: 'Matthew Garbett', pos: 'MF'}] },
+
+      // GRUPPE H
+      'Spanien': { coach: 'Luis de la Fuente', system: '4-3-3', info: 'Ständiger Ballbesitz, hohes Kurzpassspiel, junge Flügelzange.', squad: [{name: 'Lamine Yamal', pos: 'ANG'}, {name: 'Rodri', pos: 'MF'}, {name: 'Pedri', pos: 'MF'}] },
+      'Kap Verde': { coach: 'Bubista', system: '4-3-3', info: 'Sehr spielfreudig, technisch starke Dribbler.', squad: [{name: 'Ryan Mendes', pos: 'ANG'}, {name: 'Jovane Cabral', pos: 'ANG'}, {name: 'Logan Costa', pos: 'ABW'}] },
+      'Saudi-Arabien': { coach: 'Roberto Mancini', system: '3-5-2', info: 'Taktisch diszipliniert, enge Räume im Zentrum.', squad: [{name: 'Salem Al-Dawsari', pos: 'MF'}, {name: 'Firas Al-Buraikan', pos: 'ANG'}, {name: 'Saud Abdulhamid', pos: 'ABW'}] },
+      'Uruguay': { coach: 'Marcelo Bielsa', system: '4-2-3-1', info: 'Garra Charrúa: Extrem aggressives Pressing, hohe Intensität.', squad: [{name: 'Federico Valverde', pos: 'MF'}, {name: 'Darwin Núñez', pos: 'ANG'}, {name: 'Ronald Araújo', pos: 'ABW'}] },
+
+      // GRUPPE I
+      'Frankreich': { coach: 'Didier Deschamps', system: '4-2-3-1', info: 'Solide Absicherung, individuelle Weltklasse im Angriff.', squad: [{name: 'Kylian Mbappé', pos: 'ANG'}, {name: 'Antoine Griezmann', pos: 'MF'}, {name: 'William Saliba', pos: 'ABW'}] },
+      'Senegal': { coach: 'Aliou Cissé', system: '4-3-3', info: 'Athletisch herausragend, schnelle Außenspieler.', squad: [{name: 'Sadio Mané', pos: 'ANG'}, {name: 'Ismaïla Sarr', pos: 'ANG'}, {name: 'Kalidou Koulibaly', pos: 'ABW'}] },
+      'Irak': { coach: 'Jesús Casas', system: '4-2-3-1', info: 'Kompakte Staffelung, Konterangriffe.', squad: [{name: 'Aymen Hussein', pos: 'ANG'}, {name: 'Ali Jasim', pos: 'MF'}, {name: 'Zidane Iqbal', pos: 'MF'}] },
+      'Norwegen': { coach: 'Ståle Solbakken', system: '4-3-3', info: 'Nordische Kompaktheit gepaart mit absoluten Superstars.', squad: [{name: 'Erling Haaland', pos: 'ANG'}, {name: 'Martin Ødegaard', pos: 'MF'}, {name: 'Alexander Sørloth', pos: 'ANG'}] },
+
+      // GRUPPE J
+      'Argentinien': { coach: 'Lionel Scaloni', system: '4-3-3', info: 'Agressives Gegenpressing, absolute Kontrolle im Mittelfeld.', squad: [{name: 'Lionel Messi', pos: 'ANG'}, {name: 'Julián Álvarez', pos: 'ANG'}, {name: 'Alexis Mac Allister', pos: 'MF'}, {name: 'Emiliano Martínez', pos: 'TW'}] },
+      'Algerien': { coach: 'Vladimir Petković', system: '4-3-3', info: 'Technisch hochbegabt, Fokus auf Flügelspiel.', squad: [{name: 'Riyad Mahrez', pos: 'ANG'}, {name: 'Ismaël Bennacer', pos: 'MF'}, {name: 'Ramy Bensebaini', pos: 'ABW'}] },
+      'Österreich': { coach: 'Ralf Rangnick', system: '4-2-3-1', info: 'Red-Bull-Schule: Aggressives Angriffspressing, hohes Tempo.', squad: [{name: 'Marcel Sabitzer', pos: 'MF'}, {name: 'Konrad Laimer', pos: 'MF'}, {name: 'Christoph Baumgartner', pos: 'MF'}] },
+      'Jordanien': { coach: 'Hussein Ammouta', system: '3-4-2-1', info: 'Schnelles Umschaltspiel nach Ballgewinn tief in der eigenen Hälfte.', squad: [{name: 'Musa Al-Taamari', pos: 'ANG'}, {name: 'Yazan Al-Naimat', pos: 'ANG'}] },
+
+      // GRUPPE K
+      'Portugal': { coach: 'Roberto Martínez', system: '4-3-3', info: 'Enorme Kaderbreite, ballbesitzdominant, starke Flügel.', squad: [{name: 'Cristiano Ronaldo', pos: 'ANG'}, {name: 'Rafael Leão', pos: 'ANG'}, {name: 'Bruno Fernandes', pos: 'MF'}, {name: 'Rúben Dias', pos: 'ABW'}] },
+      'DR Kongo': { coach: 'Sébastien Desabre', system: '4-2-3-1', info: 'Körperlich robust, zielstrebiges Spiel in die Spitze.', squad: [{name: 'Chancel Mbemba', pos: 'ABW'}, {name: 'Yoane Wissa', pos: 'ANG'}, {name: 'Meschak Elia', pos: 'ANG'}] },
+      'Usbekistan': { coach: 'Srečko Katanec', system: '3-4-3', info: 'Diszipliniert, defensiv sehr stabil.', squad: [{name: 'Eldor Shomurodov', pos: 'ANG'}, {name: 'Abbosbek Fayzullaev', pos: 'MF'}, {name: 'Jaloliddin Masharipov', pos: 'MF'}] },
+      'Kolumbien': { coach: 'Néstor Lorenzo', system: '4-2-3-1', info: 'Technisch brillant, unberechenbar im letzten Drittel.', squad: [{name: 'Luis Díaz', pos: 'ANG'}, {name: 'James Rodríguez', pos: 'MF'}, {name: 'Jhon Arias', pos: 'MF'}] },
+
+      // GRUPPE L
+      'England': { coach: 'Gareth Southgate', system: '4-2-3-1', info: 'Sehr pragmatisch, hohe individuelle Qualität.', squad: [{name: 'Jude Bellingham', pos: 'MF'}, {name: 'Harry Kane', pos: 'ANG'}, {name: 'Phil Foden', pos: 'MF'}, {name: 'Declan Rice', pos: 'MF'}] },
+      'Kroatien': { coach: 'Zlatko Dalić', system: '4-3-3', info: 'Erfahrenes, extrem ballsicheres Mittelfeld.', squad: [{name: 'Luka Modrić', pos: 'MF'}, {name: 'Joško Gvardiol', pos: 'ABW'}, {name: 'Mateo Kovačić', pos: 'MF'}] },
+      'Ghana': { coach: 'Otto Addo', system: '4-2-3-1', info: 'Dynamisch, starke Distanzschützen.', squad: [{name: 'Mohammed Kudus', pos: 'MF'}, {name: 'Thomas Partey', pos: 'MF'}, {name: 'Inaki Williams', pos: 'ANG'}] },
+      'Panama': { coach: 'Thomas Christiansen', system: '5-4-1', info: 'Fokus auf Verteidigung und Standardsituationen.', squad: [{name: 'Adalberto Carrasquilla', pos: 'MF'}, {name: 'Michael Amir Murillo', pos: 'ABW'}, {name: 'José Fajardo', pos: 'ANG'}] },
+    },
+
+    // Initialisierung beim Seitenstart
+    init() {
+      // Ergebnisse aus dem LocalStorage holen
+      const savedScores = JSON.parse(localStorage.getItem('wm2026_scores')) || {};
+      
+      // Das bestehende MATCHES-Array patchen
+      MATCHES.forEach(match => {
+        if (savedScores[match.id]) {
+          match.hs = savedScores[match.id].hs;
+          match.as = savedScores[match.id].as;
+        }
+      });
+    },
+
+    // Neues Ergebnis abspeichern
+    saveScore(matchId, hs, as) {
+      // Im LocalStorage speichern
+      const savedScores = JSON.parse(localStorage.getItem('wm2026_scores')) || {};
+      savedScores[matchId] = { hs: parseInt(hs), as: parseInt(as) };
+      localStorage.setItem('wm2026_scores', JSON.stringify(savedScores));
+      
+      // Array im Arbeitsspeicher aktualisieren
+      const match = MATCHES.find(m => m.id === parseInt(matchId));
+      if (match) {
+        match.hs = parseInt(hs);
+        match.as = parseInt(as);
+      }
+    }
+  };
+
+  // State sofort initialisieren!
+  WM_STATE.init();
+  
   // ----------------------------------------------------------
   // WMO Weathercodes → Beschreibung + Emoji
   // ----------------------------------------------------------
