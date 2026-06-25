@@ -50,6 +50,35 @@
         #0c1222;
     }
 
+<!-- Navigation -->
+<nav>
+  <button onclick="switchView('matches')">Spiele & Ergebnisse</button>
+  <button onclick="switchView('teams')">Teams & Kader</button>
+</nav>
+
+<!-- Sektion: Spiele & Ergebnisse eintragen -->
+<section id="view-matches" class="view">
+  <h2>Spielplan & Ergebnis-Eingabe</h2>
+  <div id="matches-list">
+    <!-- Wird dynamisch per JS befüllt -->
+    <div class="match-row">
+      <span>Deutschland vs. Schottland</span>
+      <input type="number" id="score-1-A" placeholder="0"> : 
+      <input type="number" id="score-1-B" placeholder="0">
+      <button onclick="saveMatchResult(1)">Eintragen</button>
+    </div>
+  </div>
+</section>
+
+<!-- Sektion: Team-Infoseiten -->
+<section id="view-teams" class="view" style="display:none;">
+  <h2>WM-Teilnehmer</h2>
+  <div id="teams-grid"></div>
+  <div id="team-detail-modal" style="display:none; border: 1px solid #ccc; padding: 20px;">
+    <!-- Detailansicht wird hier injiziert -->
+  </div>
+</section>
+    
     /* ---- Card ---- */
     .card {
       background: #151d2e;
