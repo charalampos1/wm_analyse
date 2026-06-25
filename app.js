@@ -666,6 +666,58 @@ Formatiere alles mit Markdown. Verwende reale, aktuelle Spieler der Nationalmann
     }
   }
 
+// Ansichten umschalten
+function switchView(viewName) {
+  document.querySelectorAll('.view').forEach(view => view.style.display = 'none');
+  document.getElementById(`view-${viewName}`).style.display = 'block';
+  
+  if (viewName === 'teams') renderTeamsGrid();
+}
+
+// Ergebnis dauerhaft speichern
+function saveMatchResult(matchId) {
+  const match = WM_APP.matches.find(m => m.id === matchId);
+  if (match) {
+    match.scoreA = parseInt(document.getElementById(`score-${matchId}-A`).value);
+    match.scoreB = parseInt(document.getElementById(`score-${matchId}-B`).value);
+    match.status = "completed";
+    
+    WM_APP.saveState();
+    alert("Ergebnis eingetragen! Tabellen und Prognosefaktoren wurden aktualisiert.");
+  }
+}
+
+// Team-Übersicht und Info-Seiten rendern
+function renderTeamsGrid() {
+  const grid = document.getElementById('teams-grid');
+  grid.innerHTML = '';
+  
+  Object.keys(WM_APP.teams).forEach(code => {
+    const team = WM_APP.teams[code];
+    const btn = document.createElement('button');
+    btn.innerText = team.name;
+    btn.onclick = () => showTeamDetail(code);
+    grid.appendChild(btn);
+  });
+}
+
+function showTeamDetail(code) {
+  const team = WM_APP.teams[code];
+  const modal = document.getElementById('team-detail-modal');
+  
+  let squadHtml = team.squad.map(p => `<li>[${p.pos}] ${p.name}</li>`).join('');
+  
+  modal.innerHTML = `
+    <h3>${team.name} (Gruppe ${team.group})</h3>
+    <p><strong>Trainer:</strong> ${team.coach} | <strong>System:</strong> ${team.system}</p>
+    <p><strong>Info:</strong> ${team.info}</p>
+    <h4>Kader:</h4>
+    <ul>${squadHtml}</ul>
+    <button onclick="document.getElementById('team-detail-modal').style.display='none'">Schließen</button>
+  `;
+  modal.style.display = 'block';
+}
+  
 // ----------------------------------------------------------
   // Taktik-Modifikator für die KI-Prognose
   // ----------------------------------------------------------
