@@ -617,24 +617,34 @@ Formatiere den Bericht mit Markdown. Verwende reale, aktuelle Spieler der Nation
       if (customText) prompt += `\n\n**Zusätzliche Anweisungen:** ${customText}`;
       return prompt;
 
+// (Auszug aus buildPrompt)
     } else {
       // -- PROGNOSE für kommendes Spiel --
-      let prompt = `Du bist ein erstklassiger Fußball-Analyst. Erstelle eine detaillierte Spielprognose und Vorschau für folgendes WM 2026 Gruppenspiel.
+      const teamA_Data = WM_STATE.teams[match.h];
+      const teamB_Data = WM_STATE.teams[match.a];
+      
+      const tacticalModA = getTacticalContext(match.h, match.g);
+      const tacticalModB = getTacticalContext(match.a, match.g);
+
+      let prompt = `Du bist ein erstklassiger Fußball-Analyst. Erstelle eine detaillierte Spielprognose für folgendes WM-Spiel.
 
 **Partie:** ${FLAGS[match.h]} ${match.h} vs. ${match.a} ${FLAGS[match.a]}
-**Gruppe:** ${match.g} · Spieltag ${match.md}
 **Datum:** ${formatDate(match.date, match.time)}
-**Stadion:** ${venue.name}, ${venue.city}
-**Wetterbedingungen am Spielort:** ${weatherDesc}
 
-**Aktuelle Gruppentabelle vor dem Spiel:**
+**Team-Insights ${match.h}:**
+- Trainer: ${teamA_Data.coach} | System: ${teamA_Data.system}
+- Spielweise: ${teamA_Data.info}
+- Schlüsselspieler: ${teamA_Data.squad.map(p => p.name).join(', ')}
+${tacticalModA}
+
+**Team-Insights ${match.a}:**
+- Trainer: ${teamB_Data.coach} | System: ${teamB_Data.system}
+- Spielweise: ${teamB_Data.info}
+- Schlüsselspieler: ${teamB_Data.squad.map(p => p.name).join(', ')}
+${tacticalModB}
+
+**Aktuelle Gruppentabelle:**
 ${standings}
-
-**Bisherige Turnierergebnisse ${match.h}:**
-${homeResults || 'Erstes Spiel im Turnier'}
-
-**Bisherige Turnierergebnisse ${match.a}:**
-${awayResults || 'Erstes Spiel im Turnier'}
 
 Analysiere das kommende Spiel umfassend:
 
@@ -656,6 +666,30 @@ Formatiere alles mit Markdown. Verwende reale, aktuelle Spieler der Nationalmann
     }
   }
 
+// ----------------------------------------------------------
+  // Taktik-Modifikator für die KI-Prognose
+  // ----------------------------------------------------------
+  function getTacticalContext(teamName, groupId) {
+    const standings = getGroupStandings(groupId);
+    const teamStat = standings.find(s => s.team === teamName);
+    
+    if (!teamStat || teamStat.p < 2) return ""; // Kein Modifikator an Spieltag 1 und 2
+
+    // Szenarien für den 3. Spieltag
+    if (teamStat.p === 2) {
+      if (teamStat.pts <= 1) {
+        return `⚠️ **Sondersituation:** ${teamName} steht massiv unter Druck (nur ${teamStat.pts} Punkte) und MUSS zwingend auf Sieg spielen. Erwarte eine sehr riskante, offensive Aufstellung.`;
+      }
+      if (teamStat.pts === 6) {
+        return `🛡️ **Sondersituation:** ${teamName} ist bereits qualifiziert. Der Trainer wird voraussichtlich B-Spieler rotieren lassen und Kräfte schonen.`;
+      }
+      if (teamStat.pts >= 3 && teamStat.pts <= 4) {
+        return `⚖️ **Sondersituation:** ${teamName} reicht unter Umständen ein Unentschieden. Erwarte eine kontrollierte, abwartende Spielweise ohne volles Risiko.`;
+      }
+    }
+    return "";
+  }
+  
   // ----------------------------------------------------------
   // Gemini API Call
   // ----------------------------------------------------------
