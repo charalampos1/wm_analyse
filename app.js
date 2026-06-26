@@ -174,8 +174,8 @@
     // June 26 — Groups G, H, I
     { id: 61, g: 'G', md: 3, date: '2026-06-26', time: '12:00', h: 'Ägypten',       a: 'Iran',               v: 'SEA' },
     { id: 62, g: 'G', md: 3, date: '2026-06-26', time: '12:00', h: 'Neuseeland',    a: 'Belgien',            v: 'VAN' },
-    { id: 63, g: 'H', md: 3, date: '2026-06-26', time: '18:00', h: 'Kap Verde',     a: 'Spanien',            v: 'ATL' },
-    { id: 64, g: 'H', md: 3, date: '2026-06-26', time: '18:00', h: 'Saudi-Arabien', a: 'Uruguay',            v: 'MIA' },
+    { id: 63, g: 'H', md: 3, date: '2026-06-26', time: '18:00', h: 'Uruguay',       a: 'Spanien',            v: 'GDL' },
+    { id: 64, g: 'H', md: 3, date: '2026-06-26', time: '18:00', h: 'Kap Verde',     a: 'Saudi-Arabien',      v: 'HOU' },
     { id: 65, g: 'I', md: 3, date: '2026-06-26', time: '21:00', h: 'Norwegen',      a: 'Frankreich',         v: 'BOS' },
     { id: 66, g: 'I', md: 3, date: '2026-06-26', time: '21:00', h: 'Senegal',       a: 'Irak',               v: 'TOR' },
 
@@ -184,7 +184,7 @@
     { id: 68, g: 'J', md: 3, date: '2026-06-27', time: '12:00', h: 'Algerien',      a: 'Österreich',         v: 'KC'  },
     { id: 69, g: 'K', md: 3, date: '2026-06-27', time: '18:00', h: 'DR Kongo',      a: 'Usbekistan',         v: 'ATL' },
     { id: 70, g: 'K', md: 3, date: '2026-06-27', time: '18:00', h: 'Kolumbien',     a: 'Portugal',           v: 'MIA' },
-    { id: 71, g: 'L', md: 3, date: '2026-06-27', time: '21:00', h: 'England',       a: 'Panama',             v: 'HOU' },
+    { id: 71, g: 'L', md: 3, date: '2026-06-27', time: '21:00', h: 'England',       a: 'Panama',             v: 'NYC' },
     { id: 72, g: 'L', md: 3, date: '2026-06-27', time: '21:00', h: 'Kroatien',      a: 'Ghana',              v: 'PHI' },
   ];
 
