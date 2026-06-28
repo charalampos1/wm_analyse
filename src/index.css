@@ -66,24 +66,44 @@ select optgroup { background: #080c16; color: var(--color-txt-dim); font-weight:
 ::-webkit-scrollbar-thumb { background: var(--color-border-light); border-radius: 3px; }
 
 /* ---- Markdown output ---- */
-#report-content h1 { font-size: 1.6rem; font-weight: 800; margin-bottom: 1rem; color: #fff; font-family: var(--font-display); }
-#report-content h2 { font-size: 1.25rem; font-weight: 700; margin-top: 1.75rem; margin-bottom: 0.75rem; color: #f0f4f8; font-family: var(--font-display); padding-bottom: 0.4rem; border-bottom: 1px solid var(--color-border); }
-#report-content h3 { font-size: 1.05rem; font-weight: 600; margin-top: 1.25rem; margin-bottom: 0.5rem; color: var(--color-txt); }
-#report-content p  { margin-bottom: 0.75rem; line-height: 1.8; color: #b0c0d0; }
-#report-content ul, #report-content ol { margin-left: 1.25rem; margin-bottom: 0.75rem; color: #b0c0d0; }
-#report-content li { margin-bottom: 0.3rem; line-height: 1.65; }
-#report-content strong { color: #fff; font-weight: 600; }
-#report-content em { color: var(--color-gold); font-style: italic; }
-#report-content blockquote {
+/* Shared class for all AI-generated markdown reports */
+#report-content h1, #sim-report-content h1, #stats-favorites-content h1,
+.markdown-content h1 { font-size: 1.6rem; font-weight: 800; margin-bottom: 1rem; color: #fff; font-family: var(--font-display); }
+#report-content h2, #sim-report-content h2, #stats-favorites-content h2,
+.markdown-content h2 { font-size: 1.25rem; font-weight: 700; margin-top: 1.75rem; margin-bottom: 0.75rem; color: #f0f4f8; font-family: var(--font-display); padding-bottom: 0.4rem; border-bottom: 1px solid var(--color-border); }
+#report-content h3, #sim-report-content h3, #stats-favorites-content h3,
+.markdown-content h3 { font-size: 1.05rem; font-weight: 600; margin-top: 1.25rem; margin-bottom: 0.5rem; color: var(--color-txt); }
+#report-content p, #sim-report-content p, #stats-favorites-content p,
+.markdown-content p  { margin-bottom: 0.75rem; line-height: 1.8; color: #b0c0d0; }
+#report-content ul, #report-content ol, #sim-report-content ul, #sim-report-content ol, #stats-favorites-content ul, #stats-favorites-content ol,
+.markdown-content ul, .markdown-content ol { margin-left: 1.25rem; margin-bottom: 0.75rem; color: #b0c0d0; }
+#report-content li, #sim-report-content li, #stats-favorites-content li,
+.markdown-content li { margin-bottom: 0.3rem; line-height: 1.65; }
+#report-content strong, #sim-report-content strong, #stats-favorites-content strong,
+.markdown-content strong { color: #fff; font-weight: 600; }
+#report-content em, #sim-report-content em, #stats-favorites-content em,
+.markdown-content em { color: var(--color-gold); font-style: italic; }
+#report-content blockquote, #sim-report-content blockquote, #stats-favorites-content blockquote,
+.markdown-content blockquote {
   border-left: 3px solid var(--color-accent); padding: 0.75rem 1rem; margin: 1rem 0;
   background: rgba(255,71,87,0.06); border-radius: 0 0.5rem 0.5rem 0; color: var(--color-txt);
 }
-#report-content hr { border-color: var(--color-border); margin: 1.5rem 0; }
-#report-content table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
-#report-content th { background: var(--color-bg-hover); padding: 0.6rem 0.75rem; text-align: left; font-weight: 600; color: #f0f4f8; border-bottom: 2px solid var(--color-border-light); font-size: 0.85rem; }
-#report-content td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--color-border); color: #b0c0d0; font-size: 0.85rem; }
-#report-content tr:hover td { background: rgba(255,255,255,0.02); }
-#report-content code { background: var(--color-bg-hover); padding: 0.15rem 0.4rem; border-radius: 0.25rem; font-size: 0.85em; color: var(--color-sky); }
+#report-content hr, #sim-report-content hr, #stats-favorites-content hr,
+.markdown-content hr { border-color: var(--color-border); margin: 1.5rem 0; }
+#report-content table, #sim-report-content table, #stats-favorites-content table,
+.markdown-content table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+#report-content th, #sim-report-content th, #stats-favorites-content th,
+.markdown-content th { background: var(--color-bg-hover); padding: 0.6rem 0.75rem; text-align: left; font-weight: 600; color: #f0f4f8; border-bottom: 2px solid var(--color-border-light); font-size: 0.85rem; }
+#report-content td, #sim-report-content td, #stats-favorites-content td,
+.markdown-content td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--color-border); color: #b0c0d0; font-size: 0.85rem; }
+#report-content tr:hover td, #sim-report-content tr:hover td, #stats-favorites-content tr:hover td,
+.markdown-content tr:hover td { background: rgba(255,255,255,0.02); }
+#report-content code, #sim-report-content code, #stats-favorites-content code,
+.markdown-content code { background: var(--color-bg-hover); padding: 0.15rem 0.4rem; border-radius: 0.25rem; font-size: 0.85em; color: var(--color-sky); }
+#report-content ul, #sim-report-content ul, #stats-favorites-content ul,
+.markdown-content ul { list-style-type: disc; }
+#report-content ol, #sim-report-content ol, #stats-favorites-content ol,
+.markdown-content ol { list-style-type: decimal; }
 
 /* ---- Animations ---- */
 .spinner-ring { border: 3px solid var(--color-border); border-top-color: var(--color-accent); border-right-color: var(--color-gold); }

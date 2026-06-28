@@ -21,6 +21,7 @@ const ESPN_TO_DE = {
   'Paraguay': 'Paraguay',
   'Australia': 'Australien',
   'Turkey': 'Türkei',
+  'Türkiye': 'Türkei',
   'Germany': 'Deutschland',
   'Curaçao': 'Curaçao',
   'Ivory Coast': 'Elfenbeinküste',

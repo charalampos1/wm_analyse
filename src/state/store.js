@@ -201,5 +201,34 @@ export const store = {
     });
 
     return table;
+  },
+
+  /**
+   * Get ranking of all third-placed teams across all 12 groups.
+   * Returns array sorted by FIFA tiebreakers: pts > gd > gf.
+   * Top 8 are marked as qualified for the knockout stage.
+   */
+  getThirdPlaceRanking() {
+    const GROUPS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
+    const thirds = [];
+
+    GROUPS.forEach(g => {
+      const standings = this.getGroupStandings(g);
+      if (standings.length >= 3 && standings[2].p > 0) {
+        thirds.push({ ...standings[2], group: g });
+      }
+    });
+
+    // Sort by FIFA tiebreakers: pts > gd > gf
+    thirds.sort((a, b) => {
+      if (b.pts !== a.pts) return b.pts - a.pts;
+      if (b.gd !== a.gd) return b.gd - a.gd;
+      return b.gf - a.gf;
+    });
+
+    // Mark top 8 as qualified
+    thirds.forEach((t, i) => { t.qualified = i < 8; t.rank = i + 1; });
+
+    return thirds;
   }
 };
