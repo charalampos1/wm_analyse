@@ -90,7 +90,7 @@ async function init() {
 
   // Register routes
   registerRoute('#/simulator', () => renderSimulator());
-  registerRoute('#/gruppen', (param) => renderGroups(param));
+  registerRoute('#/gruppen', () => renderGroups());
   registerRoute('#/teams', (param) => renderTeams(param));
   registerRoute('#/ko-runde', () => renderKnockout());
   registerRoute('#/statistiken', () => renderStats());

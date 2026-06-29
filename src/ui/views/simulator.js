@@ -7,6 +7,80 @@ import { marked } from 'marked';
 let currentWeather = null;
 let container = null;
 
+/**
+ * Parse the prediction score from an AI response.
+ * Looks for patterns like:
+ * - **TIPP: [Team] [X]:[Y] [Team]**
+ * - **TIPP: X:Y**
+ * - TIPP: [Team] X : Y [Team]
+ * - Prognose: X:Y
+ * - Ergebnis-Prognose: X:Y
+ */
+function parsePrediction(report) {
+  const patterns = [
+    /\*\*TIPP:\s*(?:.*?\s+)?(\d+)\s*[:\-–—]\s*(\d+)\s*(?:.*?)?\*\*/i,
+    /\*\*TIPP:\s*(\d+)\s*[:\-–—]\s*(\d+)\s*\*\*/i,
+    /TIPP:\s*(?:.*?\s+)?(\d+)\s*[:\-–—]\s*(\d+)/i,
+    /Prognose:\s*(?:.*?\s+)?(\d+)\s*[:\-–—]\s*(\d+)/i,
+    /Ergebnis-Prognose:\s*(?:.*?\s+)?(\d+)\s*[:\-–—]\s*(\d+)/i,
+    /(?:Exakte\s+)?Ergebnis-Prognose:\s*(?:.*?\s+)?(\d+)\s*[:\-–—]\s*(\d+)/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = report.match(pattern);
+    if (match) {
+      return { home: parseInt(match[1], 10), away: parseInt(match[2], 10) };
+    }
+  }
+
+  // Fallback: try to find any score pattern in the last 200 chars
+  const lastPart = report.slice(-500);
+  const fallbackMatch = lastPart.match(/(\d+)\s*[:\-–—]\s*(\d+)/);
+  if (fallbackMatch) {
+    return { home: parseInt(fallbackMatch[1], 10), away: parseInt(fallbackMatch[2], 10) };
+  }
+
+  return null;
+}
+
+/**
+ * Determine confidence level from the AI response text.
+ */
+function parseConfidence(report) {
+  const lower = report.toLowerCase();
+  if (/\b(hoch|high|strong|sicher|clear|confident)\b/i.test(lower)) return 'Hoch';
+  if (/\b(niedrig|low|weak|unsicher|uncertain|doubtful)\b/i.test(lower)) return 'Niedrig';
+  return 'Mittel'; // Default
+}
+
+/**
+ * Render a prediction highlight box.
+ */
+function renderPredictionBox(prediction, homeTeam, awayTeam) {
+  if (!prediction) return '';
+
+  const confidence = parseConfidence(
+    document.getElementById('sim-report-content')?.textContent || ''
+  );
+  const confidenceColor = confidence === 'Hoch' ? 'text-emerald-400' : confidence === 'Niedrig' ? 'text-amber-400' : 'text-sky-400';
+  const confidenceBg = confidence === 'Hoch' ? 'bg-emerald-500/10 border-emerald-500/30' : confidence === 'Niedrig' ? 'bg-amber-500/10 border-amber-500/30' : 'bg-sky-500/10 border-sky-500/30';
+
+  return `
+    <div class="prediction-highlight card p-4 mb-4 border-2 border-accent/40 bg-gradient-to-r from-accent/5 to-transparent">
+      <div class="text-xs font-bold text-accent uppercase tracking-wider mb-2">⚡ KI-Spielprognose</div>
+      <div class="flex items-center justify-center gap-4 mb-3">
+        <span class="text-lg font-display font-bold text-white">${homeTeam || 'Heim'}</span>
+        <span class="text-5xl font-display font-black text-accent tracking-wider">${prediction.home} : ${prediction.away}</span>
+        <span class="text-lg font-display font-bold text-white">${awayTeam || 'Gast'}</span>
+      </div>
+      <div class="flex items-center justify-center gap-3">
+        <span class="px-3 py-1 rounded-md ${confidenceBg} ${confidenceColor} text-xs font-bold border">${confidence} Konfidenz</span>
+        <span class="text-xs text-txt-muted">4 Punkte bei richtigem Exaktergebnis</span>
+      </div>
+    </div>
+  `;
+}
+
 function formatDate(dateStr, timeStr) {
   const [y, m, d] = dateStr.split('-').map(Number);
   const [hh, mm] = timeStr.split(':').map(Number);
@@ -34,6 +108,22 @@ function formatStandings(groupId) {
   return table;
 }
 
+function formatSquad(squadData) {
+  if (!squadData || squadData.length === 0) return 'Keine Kaderdaten verfügbar';
+  const byPos = { TW: [], ABW: [], MF: [], ANG: [] };
+  squadData.forEach(p => {
+    const pos = p.pos || 'MF';
+    if (byPos[pos]) byPos[pos].push(p.name);
+    else byPos[pos] = [p.name];
+  });
+  let result = '';
+  if (byPos.TW.length) result += `- Torhüter: ${byPos.TW.join(', ')}\n`;
+  if (byPos.ABW.length) result += `- Abwehr: ${byPos.ABW.join(', ')}\n`;
+  if (byPos.MF.length) result += `- Mittelfeld: ${byPos.MF.join(', ')}\n`;
+  if (byPos.ANG.length) result += `- Angriff: ${byPos.ANG.join(', ')}\n`;
+  return result.trim();
+}
+
 function getTeamResults(teamName) {
   return store.matches
     .filter(m => (m.h === teamName || m.a === teamName) && store.isMatchPlayed(m))
@@ -46,16 +136,16 @@ function getTeamResults(teamName) {
     }).join('\n');
 }
 
-function getTacticalContext(teamName, groupId) {
-  const standings = store.getGroupStandings(groupId);
-  const teamStat = standings.find(s => s.team === teamName);
-  if (!teamStat || teamStat.p < 2) return "";
-  if (teamStat.p === 2) {
-    if (teamStat.pts <= 1) return `⚠️ **Sondersituation:** ${teamName} steht massiv unter Druck (nur ${teamStat.pts} Punkte) und MUSS zwingend auf Sieg spielen.`;
-    if (teamStat.pts === 6) return `🛡️ **Sondersituation:** ${teamName} ist bereits qualifiziert. Der Trainer wird rotieren.`;
-    if (teamStat.pts >= 3 && teamStat.pts <= 4) return `⚖️ **Sondersituation:** ${teamName} reicht unter Umständen ein Unentschieden.`;
-  }
-  return "";
+/**
+ * Build a description of the tournament format and context.
+ */
+function getTournamentFormat() {
+  return `**Turnierformat WM 2026:**
+- 12 Gruppen (A–L) mit je 4 Teams
+- Die Gruppenersten und -zweiten (24 Teams) sind direkt für die K.O.-Runde qualifiziert
+- Die 8 besten Gruppendritten erreichen ebenfalls das Sechzehntelfinale (Runde der 32)
+- Ab dem Sechzehntelfinale geht es im einfachen K.O.-System weiter: Achtelfinale → Viertelfinale → Halbfinale → Finale
+- Platz 3 wird in einem separaten Spiel ermittelt`;
 }
 
 function buildPrompt(match, weather, customText) {
@@ -71,7 +161,11 @@ function buildPrompt(match, weather, customText) {
   const aFlag = store.teams[match.a]?.flag || '';
 
   if (played) {
-    let prompt = `Du bist ein erstklassiger Sportjournalist. Erstelle einen detaillierten, packenden Spielbericht für folgendes WM 2026 Gruppenspiel.
+    return `Du bist ein erstklassiger Sportjournalist. Erstelle einen detaillierten, packenden Spielbericht für folgendes WM 2026 Gruppenspiel.
+
+**WICHTIG: Deine Analyse muss ausschließlich auf den unten bereitgestellten Daten basieren. Verwende KEINE veralteten Informationen aus deinen Trainingsdaten (vor 2026) über Spieler oder Teams. Nur die hier gelisteten Kader, Ergebnisse und Tabellen sind für diesen Bericht gültig.**
+
+${getTournamentFormat()}
 
 **Partie:** ${hFlag} ${match.h} ${match.hs} : ${match.as} ${match.a} ${aFlag}
 **Gruppe:** ${match.g} · Spieltag ${match.md}
@@ -95,54 +189,100 @@ Erstelle einen realistischen, spannenden Spielbericht mit:
 - **Spieler des Spiels** mit Begründung
 - **Einfluss der Wetterbedingungen**
 - **Stimmung im Stadion**
-- **Auswirkung auf die Gruppentabelle**
+- **Auswirkung auf die Gruppentabelle** und Qualifikationschancen
 - **Fazit und Ausblick**
 
-Formatiere den Bericht mit Markdown. Verwende reale, aktuelle Spieler. Sei detailliert und emotional.`;
-    if (customText) prompt += `\n\n**Zusätzliche Anweisungen:** ${customText}`;
-    return prompt;
-  } else {
-    const teamA_Data = store.teams[match.h];
-    const teamB_Data = store.teams[match.a];
-    const tacticalModA = getTacticalContext(match.h, match.g);
-    const tacticalModB = getTacticalContext(match.a, match.g);
+Formatiere den Bericht mit Markdown. Verwende reale, aktuelle Spieler aus den bereitgestellten Kadern. Sei detailliert und emotional.`;
+  }
 
-    let prompt = `Du bist ein erstklassiger Fußball-Analyst. Erstelle eine detaillierte Spielprognose für folgendes WM-Spiel.
+  const teamA_Data = store.teams[match.h];
+  const teamB_Data = store.teams[match.a];
 
-**Partie:** ${hFlag} ${match.h} vs. ${match.a} ${aFlag}
+  return `Du bist ein erfahrener Tippspiel-Experte und Fußball-Analyst. Dein Ziel ist es, die bestmögliche Spielprognose für ein WM 2026 Gruppenspiel zu erstellen, um bei einem Tippspiel (wie kicktipp) die maximale Punktzahl zu erzielen.
+
+**WICHTIG: Nutze AUSSCHLIESSLICH die unten bereitgestellten Daten. Verwende KEINE veralteten Informationen aus deinen Trainingsdaten (vor 2026) über Spieler oder Teams. Nur die hier gelisteten Kader, Ergebnisse, Tabellen und Turnierinformationen sind gültig.**
+
+## Tippspiel-Scoring (kicktipp)
+- **4 Punkte:** Richtiges Ergebnis (exakte Tore)
+- **3 Punkte:** Richtige Tordifferenz
+- **2 Punkte:** Richtige Tendenz (Heimsieg, Unentschieden, Auswärtssieg)
+- **Bei Unentschieden:** 4 Punkte bei richtigem Exaktergebnis, sonst 2 Punkte bei richtiger Tendenz
+
+Deine Prognose muss so optimiert sein, dass sie das Exaktergebnis trifft (4 Punkte), da dies die höchste Punktzahl bringt. Begründe deine Prognose fundiert.
+
+## Turnierformat WM 2026
+${getTournamentFormat()}
+
+## Partie
+${hFlag} ${match.h} vs. ${match.a} ${aFlag}
 **Datum:** ${formatDate(match.date, match.time)}
+**Stadion:** ${venue.name}, ${venue.city}
+**Wetterbedingungen:** ${weatherDesc}
 
-**Team-Insights ${match.h}:**
+## Team-Insights ${match.h}
 - Trainer: ${teamA_Data.coach} | System: ${teamA_Data.system}
 - Spielweise: ${teamA_Data.info}
-- Schlüsselspieler: ${teamA_Data.squad.map(p => p.name).join(', ')}
-${tacticalModA}
+- Vollständiger Kader:
+${formatSquad(teamA_Data.squad)}
 
-**Team-Insights ${match.a}:**
+## Team-Insights ${match.a}
 - Trainer: ${teamB_Data.coach} | System: ${teamB_Data.system}
 - Spielweise: ${teamB_Data.info}
-- Schlüsselspieler: ${teamB_Data.squad.map(p => p.name).join(', ')}
-${tacticalModB}
+- Vollständiger Kader:
+${formatSquad(teamB_Data.squad)}
 
-**Aktuelle Gruppentabelle:**
+## Aktuelle Gruppentabelle
 ${standings}
 
-Analysiere umfassend:
-1. **Ausgangslage & Motivation**
-2. **Kader & Verletzungen**
-3. **Erwartete Aufstellungen** mit realen Spielern
-4. **Taktik-Analyse**
-5. **Schlüsselduelle**
-6. **Wettquoten & Favoritenrolle**
-7. **Wetter-Einfluss** — ${weatherDesc}
-8. **Historische Bilanz**
-9. **Prognose** mit Ergebnis-Tipp
-10. **Fazit**
+## Bisherige Turnierergebnisse ${match.h}
+${homeResults || 'Erstes Spiel im Turnier'}
 
-Formatiere alles mit Markdown. Verwende reale Spieler. Sei fundiert.`;
-    if (customText) prompt += `\n\n**Zusätzliche Anweisungen:** ${customText}`;
-    return prompt;
-  }
+## Bisherige Turnierergebnisse ${match.a}
+${awayResults || 'Erstes Spiel im Turnier'}
+
+## Deine Analyse
+
+Erstelle eine umfassende, strukturierte Analyse:
+
+### 1. Ausgangslage & Motivation
+- Welche Bedeutung hat dieses Spiel für beide Teams? (Gruppensieger, Platz 2, Kampf um Platz 3?)
+- Wie wirkt sich der Gruppenstand auf die Motivation aus?
+
+### 2. Datengetriebene Analyse
+- Aktuelle Form (letzte Spiele: S/U/N mit Ergebnis)
+- Torstatistiken (geschossene/erhaltene Tore, Differenz)
+- Stärken und Schwächen basierend auf Kader und System
+- Historische Muster bei WM-Spielen mit ähnlichen Konstellationen
+
+### 3. Psychologie & Sentiment
+- Druck-Situation: Muss ein Team gewinnen? Kann es sich einen Remis erlauben?
+- Team-Moral: Vertrauen durch letzte Ergebnisse?
+- Underdog/Favoriten-Dynamik
+
+### 4. Taktische Analyse
+- Erwartete Aufstellungen (mit realen Spielern aus den Kadern)
+- Taktische Schlüsselduelle
+- Wie könnte das Spiel verlaufen? (Offensiv vs. Defensiv)
+
+### 5. Wetter & Rahmenbedingungen
+- Wie beeinflusst das Wetter (${weatherDesc}) das Spiel?
+- Stadionfaktor (Heimvorteil, Höhe, Reiseaufwand)
+
+### 6. Prognose & Tippspiel-Optimierung
+- **Exakte Ergebnis-Prognose:** [Heim-Tore] : [Gast-Tore]
+- **Begründung:** Warum genau dieses Ergebnis?
+- **Konfidenz:** Hoch / Mittel / Niedrig
+- **Alternative Szenarien:** Was könnte schiefgehen?
+- **Tippspiel-Empfehlung:** Welcher Tipp bringt die meisten Punkte? (Exakt / Differenz / Tendenz)
+
+### 7. Fazit
+- Zusammenfassung der wichtigsten Argumente
+- Endgültiger Tipp
+
+**WICHTIG:** Beende deine Antwort mit einer klaren Prognose-Zeile am Ende:
+**TIPP: [Heim-Team] [X]:[Y] [Gast-Team]**
+
+Formatiere alles mit Markdown. Verwende NUR Spieler aus den bereitgestellten Kadern. Sei fundiert und spezifisch.`;
 }
 
 export function renderSimulator() {
@@ -158,7 +298,7 @@ export function renderSimulator() {
         KI-Analyse für<br/><span class="text-accent">jedes WM-Spiel</span>
       </h2>
       <p class="text-txt-dim text-sm sm:text-base max-w-lg mx-auto leading-relaxed">
-        Wähle eine Partie — die KI analysiert Kader, Taktik, Wetter und Gruppenstand für eine fundierte Prognose oder einen packenden Spielbericht.
+        Wähle eine Partie — die KI analysiert Kader, Taktik, Wetter, Gruppenstand und Turnierverlauf für eine fundierte Prognose oder einen packenden Spielbericht.
       </p>
     </section>
 
@@ -180,19 +320,6 @@ export function renderSimulator() {
           <span id="sim-md-badge" class="px-2.5 py-0.5 rounded-md bg-sky/10 text-sky text-[11px] font-bold uppercase tracking-wide border border-sky/20"></span>
         </div>
         <div id="sim-score-display" class="hidden text-center mb-4"></div>
-
-        <!-- Score Input -->
-        <div id="sim-score-input" class="hidden mb-4">
-          <div class="flex items-center justify-center gap-3">
-            <input type="number" id="sim-home-score" min="0" max="20" class="w-16 text-center bg-[#0a0f1a] border border-border rounded-lg px-2 py-2.5 text-xl font-display font-bold text-white focus:outline-none focus:border-accent/60" placeholder="0" />
-            <span class="text-xl font-bold text-txt-muted">:</span>
-            <input type="number" id="sim-away-score" min="0" max="20" class="w-16 text-center bg-[#0a0f1a] border border-border rounded-lg px-2 py-2.5 text-xl font-display font-bold text-white focus:outline-none focus:border-accent/60" placeholder="0" />
-          </div>
-          <div class="flex justify-center gap-2 mt-3">
-            <button id="sim-save-result" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-lg transition-colors">Ergebnis eintragen</button>
-            <button id="sim-edit-result" class="hidden px-5 py-2 bg-sky/20 hover:bg-sky/30 text-sky text-sm font-bold rounded-lg transition-colors border border-sky/20">Bearbeiten</button>
-          </div>
-        </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-sm mb-3">
           <div class="flex items-center gap-3 bg-bg-card rounded-lg px-4 py-2.5 border border-border">
@@ -317,40 +444,6 @@ function bindEvents() {
   });
 
   document.getElementById('sim-start-btn').addEventListener('click', startSimulation);
-
-  document.getElementById('sim-save-result').addEventListener('click', () => {
-    const matchId = parseInt(document.getElementById('sim-match-select').value, 10);
-    const hs = parseInt(document.getElementById('sim-home-score').value, 10);
-    const as = parseInt(document.getElementById('sim-away-score').value, 10);
-    if (isNaN(hs) || isNaN(as) || hs < 0 || as < 0) {
-      showToast('Bitte gültige Ergebnisse eingeben (≥ 0).', 'error');
-      return;
-    }
-    store.saveMatchResult(matchId, hs, as);
-    showToast('Ergebnis eingetragen!', 'success');
-    // Refresh select and info
-    const sel = document.getElementById('sim-match-select');
-    sel.innerHTML = '';
-    populateSelect();
-    sel.value = matchId;
-    showMatchInfo(store.getMatch(matchId));
-  });
-
-  document.getElementById('sim-edit-result').addEventListener('click', () => {
-    const matchId = parseInt(document.getElementById('sim-match-select').value, 10);
-    const match = store.getMatch(matchId);
-    if (!match) return;
-    // Remove result and let user re-enter
-    match.hs = undefined;
-    match.as = undefined;
-    store.persistMatches();
-    const sel = document.getElementById('sim-match-select');
-    sel.innerHTML = '';
-    populateSelect();
-    sel.value = matchId;
-    showMatchInfo(match);
-    showToast('Ergebnis zurückgesetzt. Du kannst ein neues eingeben.', 'info');
-  });
 }
 
 function renderMatchEvents(match) {
@@ -421,11 +514,8 @@ async function showMatchInfo(match) {
   document.getElementById('sim-venue').textContent = `${venue.name}, ${venue.city} ${venue.country}`;
 
   const scoreDisplay = document.getElementById('sim-score-display');
-  const scoreInput = document.getElementById('sim-score-input');
   const statusBadge = document.getElementById('sim-status-badge');
   const btnText = document.getElementById('sim-btn-text');
-  const editBtn = document.getElementById('sim-edit-result');
-  const saveBtn = document.getElementById('sim-save-result');
 
   // Remove previous event details
   const existingEvents = info.querySelector('.match-events-container');
@@ -441,53 +531,37 @@ async function showMatchInfo(match) {
       </div>
     `;
     scoreDisplay.classList.remove('hidden');
-    scoreInput.classList.add('hidden');
     statusBadge.textContent = '🔴 LIVE';
     statusBadge.className = 'px-2.5 py-0.5 rounded-md bg-red-500/10 text-red-400 text-[11px] font-bold uppercase tracking-wide border border-red-500/20 animate-pulse';
     btnText.textContent = 'Spielbericht generieren';
-  } else if (played && isApiResult) {
-    // Completed match from API — read-only score
+  } else if (played) {
+    // Completed match
+    const sourceLabel = isApiResult
+      ? '<div class="text-[10px] text-emerald-400 mt-1 flex items-center justify-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>Offizielles Ergebnis (ESPN)</div>'
+      : '';
     scoreDisplay.innerHTML = `
       <span class="text-4xl font-display font-black text-white">${match.hs} : ${match.as}</span>
-      <div class="text-[10px] text-emerald-400 mt-1 flex items-center justify-center gap-1">
-        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-        Offizielles Ergebnis (ESPN)
-      </div>
+      ${sourceLabel}
     `;
     scoreDisplay.classList.remove('hidden');
-    scoreInput.classList.add('hidden');
     statusBadge.textContent = 'Endstand';
     statusBadge.className = 'px-2.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 text-[11px] font-bold uppercase tracking-wide border border-emerald-500/20';
     btnText.textContent = 'Spielbericht generieren';
 
-    // Show match events (goals, cards)
-    const eventsHtml = renderMatchEvents(match);
-    if (eventsHtml) {
-      const eventsContainer = document.createElement('div');
-      eventsContainer.className = 'match-events-container';
-      eventsContainer.innerHTML = eventsHtml;
-      scoreDisplay.after(eventsContainer);
+    // Show match events (goals, cards) for API results
+    if (isApiResult) {
+      const eventsHtml = renderMatchEvents(match);
+      if (eventsHtml) {
+        const eventsContainer = document.createElement('div');
+        eventsContainer.className = 'match-events-container';
+        eventsContainer.innerHTML = eventsHtml;
+        scoreDisplay.after(eventsContainer);
+      }
     }
-  } else if (played) {
-    // Manually entered result
-    scoreDisplay.innerHTML = `<span class="text-4xl font-display font-black text-white">${match.hs} : ${match.as}</span>`;
-    scoreDisplay.classList.remove('hidden');
-    scoreInput.classList.remove('hidden');
-    document.getElementById('sim-home-score').value = match.hs;
-    document.getElementById('sim-away-score').value = match.as;
-    saveBtn.classList.add('hidden');
-    editBtn.classList.remove('hidden');
-    statusBadge.textContent = 'Gespielt';
-    statusBadge.className = 'px-2.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 text-[11px] font-bold uppercase tracking-wide border border-emerald-500/20';
-    btnText.textContent = 'Spielbericht generieren';
   } else {
+    // Upcoming match
     scoreDisplay.innerHTML = '';
     scoreDisplay.classList.add('hidden');
-    scoreInput.classList.remove('hidden');
-    document.getElementById('sim-home-score').value = '';
-    document.getElementById('sim-away-score').value = '';
-    saveBtn.classList.remove('hidden');
-    editBtn.classList.add('hidden');
     const today = new Date().toISOString().slice(0, 10);
     if (match.date === today) {
       statusBadge.textContent = 'Heute';
@@ -562,7 +636,16 @@ async function startSimulation() {
 
     document.getElementById('sim-report-title').textContent = `${hFlag} ${match.h} vs. ${match.a} ${aFlag}`;
     document.getElementById('sim-report-meta').textContent = `Gruppe ${match.g} · Spieltag ${match.md} · ${venue.name}, ${venue.city} · ${played ? 'Spielbericht' : 'Spielprognose'}`;
-    document.getElementById('sim-report-content').innerHTML = marked.parse(report);
+
+    // For predictions (unplayed matches), extract and display prediction highlight box
+    if (!played) {
+      const prediction = parsePrediction(report);
+      const predictionBox = renderPredictionBox(prediction, match.h, match.a);
+      document.getElementById('sim-report-content').innerHTML = predictionBox + marked.parse(report);
+    } else {
+      document.getElementById('sim-report-content').innerHTML = marked.parse(report);
+    }
+
     error.classList.add('hidden');
     loading.classList.add('hidden');
     output.classList.remove('hidden');
